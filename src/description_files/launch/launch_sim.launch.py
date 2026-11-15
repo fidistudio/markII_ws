@@ -14,15 +14,18 @@ def generate_launch_description():
     # Package containing the robot description
     package_name = "description_files"
 
+    package_share = get_package_share_directory(package_name)
+
     # Robot State Publisher
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory(package_name), "launch", "rsp.launch.py"
-            )
+            os.path.join(package_share, "launch", "rsp.launch.py")
         ),
         launch_arguments={"use_sim_time": "true"}.items(),
     )
+
+    # Warehouse world file
+    world_file = os.path.join(package_share, "worlds", "warehouse_world.sdf")
 
     # Gazebo Harmonic
     gazebo_share = get_package_share_directory("ros_gz_sim")
@@ -31,7 +34,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(gazebo_share, "launch", "gz_sim.launch.py")
         ),
-        launch_arguments={"gz_args": "-r empty.sdf"}.items(),
+        launch_arguments={"gz_args": f"-r {world_file}"}.items(),
     )
 
     # Spawn robot in Gazebo
@@ -40,7 +43,7 @@ def generate_launch_description():
             os.path.join(gazebo_share, "launch", "gz_spawn_model.launch.py")
         ),
         launch_arguments={
-            "world": "empty",
+            "world": "warehouse_world",
             "topic": "/robot_description",
             "entity_name": "my_bot",
             "z": "0.5",
