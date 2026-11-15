@@ -1,0 +1,18 @@
+# ROS 2 workspace
+/build/
+/install/
+/log/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# IDEs
+.vscode/
+.idea/
+
+# Temporary files
+*.swp
+*.swo
+*~
+.DS_Store
