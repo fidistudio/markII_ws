@@ -50,29 +50,62 @@ def generate_launch_description():
         }.items(),
     )
 
-    # Give Gazebo some time to start before spawning
+    # Give Gazebo time to start before spawning
     delayed_spawn = TimerAction(
         period=5.0,
         actions=[spawn_robot],
     )
 
-    # Bridge ROS 2 cmd_vel -> Gazebo Harmonic
-    cmd_vel_bridge = Node(
+    # Gazebo -> ROS 2 Bridges
+    bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            # ROS 2 -> Gazebo
-            "/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist",
-            # Gazebo -> ROS 2
-            "/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry",
-            # Gazebo -> ROS 2
-            "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
-            # Gazebo -> ROS 2
-            "/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+            # Gazebo -> ROS 2 (Simulation clock)
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
             # Gazebo -> ROS 2 (LiDAR)
             "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
         ],
         output="screen",
+    )
+
+    # Spawn Joint State Broadcaster
+    joint_state_broadcaster = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "joint_state_broadcaster",
+            "--controller-manager",
+            "/controller_manager",
+        ],
+        output="screen",
+    )
+
+    # Spawn Differential Drive Controller
+    diff_drive_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "diff_drive_controller",
+            "--controller-manager",
+            "/controller_manager",
+        ],
+        output="screen",
+    )
+
+    # Start controllers after robot spawning
+    delayed_joint_state_broadcaster = TimerAction(
+        period=8.0,
+        actions=[
+            joint_state_broadcaster,
+        ],
+    )
+
+    delayed_diff_drive_controller = TimerAction(
+        period=10.0,
+        actions=[
+            diff_drive_controller,
+        ],
     )
 
     # Launch everything
@@ -80,7 +113,9 @@ def generate_launch_description():
         [
             rsp,
             gazebo,
+            bridge,
             delayed_spawn,
-            cmd_vel_bridge,
+            delayed_joint_state_broadcaster,
+            delayed_diff_drive_controller,
         ]
     )
