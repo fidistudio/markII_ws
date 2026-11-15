@@ -67,7 +67,10 @@ def generate_launch_description():
             "/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry",
             # Gazebo -> ROS 2
             "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
+            # Gazebo -> ROS 2
             "/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+            # Gazebo -> ROS 2 (LiDAR)
+            "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
         ],
         output="screen",
     )
